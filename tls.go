@@ -40,7 +40,7 @@ var (
 		"certificate string must be in base64 format",
 	)
 	errTLSMinVersionGreaterThanMaxVersion = errors.New(
-		"invalid TLS configuration: minVersion cannot be greater than max_version",
+		"invalid TLS configuration: minVersion cannot be greater than maxVersion",
 	)
 	errUnsupportedTLSVersion  = errors.New("unsupported TLS version")
 	errUnsupportedCipherSuite = errors.New("invalid TLS cipher suite")
@@ -49,60 +49,60 @@ var (
 
 // TLSClientCertificate represents a cert and key pair certificate.
 type TLSClientCertificate struct {
-	// Path to the TLS cert to use for TLS required connections.
-	CertFile *goenvconf.EnvString `json:"cert_file,omitempty" mapstructure:"cert_file" yaml:"cert_file,omitempty"`
-	// Alternative to cert_file. Provide the certificate contents as a base64-encoded string instead of a filepath.
-	CertPem *goenvconf.EnvString `json:"cert_pem,omitempty" mapstructure:"cert_pem" yaml:"cert_pem,omitempty"`
-	// Path to the TLS key to use for TLS required connections.
-	KeyFile *goenvconf.EnvString `json:"key_file,omitempty" mapstructure:"key_file" yaml:"key_file,omitempty"`
-	// Alternative to key_file. Provide the key contents as a base64-encoded string instead of a filepath.
-	KeyPem *goenvconf.EnvString `json:"key_pem,omitempty" mapstructure:"key_pem" yaml:"key_pem,omitempty"`
+	// CertFile is the path to the TLS cert to use for TLS required connections.
+	CertFile *goenvconf.EnvString `json:"certFile,omitempty" mapstructure:"certFile" yaml:"certFile,omitempty"`
+	// CertPem is alternative to certFile. Provide the certificate contents as a base64-encoded string instead of a filepath.
+	CertPem *goenvconf.EnvString `json:"certPem,omitempty" mapstructure:"certPem" yaml:"certPem,omitempty"`
+	// KeyFile is the path to the TLS key to use for TLS required connections.
+	KeyFile *goenvconf.EnvString `json:"keyFile,omitempty" mapstructure:"keyFile" yaml:"keyFile,omitempty"`
+	// KeyPem is the alternative to keyFile. Provide the key contents as a base64-encoded string instead of a filepath.
+	KeyPem *goenvconf.EnvString `json:"keyPem,omitempty" mapstructure:"keyPem" yaml:"keyPem,omitempty"`
 }
 
 // TLSConfig represents the transport layer security (LTS) configuration for the mutualTLS authentication.
 type TLSConfig struct {
 	// Interval to reload certificates. Only takes effect for file-path certificates.
 	// Default value is 24 hours.
-	ReloadInterval *model.Duration `json:"reload_interval,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"reload_interval" yaml:"reload_interval"`
-	// Path to the root certificate. For a client this verifies the server certificate. For a server this verifies client certificates.
+	ReloadInterval *model.Duration `json:"reloadInterval,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"reloadInterval" yaml:"reloadInterval"`
+	// RootCAFile represents paths to root certificates. For a client this verifies the server certificate. For a server this verifies client certificates.
 	// If empty uses system root CA.
-	RootCAFile []goenvconf.EnvString `json:"root_ca_file,omitempty" mapstructure:"root_ca_file" yaml:"root_ca_file,omitempty"`
-	// Alternative to ca_file. Provide the CA cert contents as a base64-encoded string instead of a filepath.
-	RootCAPem []goenvconf.EnvString `json:"root_ca_pem,omitempty" mapstructure:"root_ca_pem" yaml:"root_ca_pem,omitempty"`
-	// Path to the CA cert. For a client this verifies the server certificate. For a server this verifies client certificates.
+	RootCAFile []goenvconf.EnvString `json:"rootCAFile,omitempty" mapstructure:"rootCAFile" yaml:"rootCAFile,omitempty"`
+	// RootCAPem is the alternative to rootCAFile. Provide the CA cert contents as a base64-encoded string instead of a filepath.
+	RootCAPem []goenvconf.EnvString `json:"rootCAPem,omitempty" mapstructure:"rootCAPem" yaml:"rootCAPem,omitempty"`
+	// CAFile is the path to the CA cert. For a client this verifies the server certificate. For a server this verifies client certificates.
 	// If empty uses system root CA.
-	CAFile []goenvconf.EnvString `json:"ca_file,omitempty" mapstructure:"ca_file" yaml:"ca_file,omitempty"`
-	// Alternative to ca_file. Provide the CA cert contents as a base64-encoded string instead of a filepath.
-	CAPem []goenvconf.EnvString `json:"ca_pem,omitempty" mapstructure:"ca_pem" yaml:"ca_pem,omitempty"`
-	// List of client certificates.
+	CAFile []goenvconf.EnvString `json:"caFile,omitempty" mapstructure:"caFile" yaml:"caFile,omitempty"`
+	// CAPem is alternative to caFile. Provide the CA cert contents as a base64-encoded string instead of a filepath.
+	CAPem []goenvconf.EnvString `json:"caPem,omitempty" mapstructure:"caPem" yaml:"caPem,omitempty"`
+	// Certificates contains the list of client certificates.
 	Certificates []TLSClientCertificate `json:"certificates,omitempty" mapstructure:"certificates" yaml:"certificates,omitempty"`
-	// Additionally you can configure TLS to be enabled but skip verifying the server's certificate chain.
-	InsecureSkipVerify *goenvconf.EnvBool `json:"insecure_skip_verify,omitempty" mapstructure:"insecure_skip_verify" yaml:"insecure_skip_verify,omitempty"`
-	// Whether to load the system certificate authorities pool alongside the certificate authority.
-	IncludeSystemCACertsPool *goenvconf.EnvBool `json:"include_system_ca_certs_pool,omitempty" mapstructure:"include_system_ca_certs_pool" yaml:"include_system_ca_certs_pool,omitempty"`
+	// InsecureSkipVerify you can configure TLS to be enabled but skip verifying the server's certificate chain.
+	InsecureSkipVerify *goenvconf.EnvBool `json:"insecureSkipVerify,omitempty" mapstructure:"insecureSkipVerify" yaml:"insecureSkipVerify,omitempty"`
+	// IncludeSystemCACertsPool whether to load the system certificate authorities pool alongside the certificate authority.
+	IncludeSystemCACertsPool *goenvconf.EnvBool `json:"includeSystemCACertsPool,omitempty" mapstructure:"includeSystemCACertsPool" yaml:"includeSystemCACertsPool,omitempty"`
 	// Minimum acceptable TLS version.
-	MinVersion string `json:"min_version,omitempty" mapstructure:"min_version" yaml:"min_version,omitempty"`
+	MinVersion string `json:"minVersion,omitempty" mapstructure:"minVersion" yaml:"minVersion,omitempty"`
 	// Maximum acceptable TLS version.
-	MaxVersion string `json:"max_version,omitempty" mapstructure:"max_version" yaml:"max_version,omitempty"`
+	MaxVersion string `json:"maxVersion,omitempty" mapstructure:"maxVersion" yaml:"maxVersion,omitempty"`
 	// Explicit cipher suites can be set. If left blank, a safe default list is used.
 	// See https://go.dev/src/crypto/tls/cipher_suites.go for a list of supported cipher suites.
-	CipherSuites []string `json:"cipher_suites,omitempty" mapstructure:"cipher_suites" yaml:"cipher_suites,omitempty"`
+	CipherSuites []string `json:"cipherSuites,omitempty" mapstructure:"cipherSuites" yaml:"cipherSuites,omitempty"`
 	// ServerName requested by client for virtual hosting.
 	// This sets the ServerName in the TLSConfig. Please refer to
 	// https://godoc.org/crypto/tls#Config for more information. (optional)
-	ServerName *goenvconf.EnvString `json:"server_name,omitempty" mapstructure:"server_name" yaml:"server_name,omitempty"`
+	ServerName *goenvconf.EnvString `json:"serverName,omitempty" mapstructure:"serverName" yaml:"serverName,omitempty"`
 }
 
 // Validate if the current instance is valid.
 func (tc TLSConfig) Validate() error {
 	minTLS, err := tc.GetMinVersion()
 	if err != nil {
-		return fmt.Errorf("min_version: %w", err)
+		return fmt.Errorf("minVersion: %w", err)
 	}
 
 	maxTLS, err := tc.GetMaxVersion()
 	if err != nil {
-		return fmt.Errorf("max_version: %w", err)
+		return fmt.Errorf("maxVersion: %w", err)
 	}
 
 	if maxTLS < minTLS && maxTLS != defaultMaxTLSVersion {
@@ -146,12 +146,12 @@ func (tc TLSConfig) validateCertificates() error {
 		if cert.CertFile != nil && cert.CertPem != nil {
 			certFile, err := cert.CertFile.GetOrDefault("")
 			if err != nil {
-				return fmt.Errorf("certificates[%d].cert_file: %w", i, err)
+				return fmt.Errorf("certificates[%d].certFile: %w", i, err)
 			}
 
 			certPem, err := cert.CertPem.GetOrDefault("")
 			if err != nil {
-				return fmt.Errorf("certificates[%d].cert_pem: %w", i, err)
+				return fmt.Errorf("certificates[%d].certPem: %w", i, err)
 			}
 
 			if certFile != "" && certPem != "" {
@@ -162,12 +162,12 @@ func (tc TLSConfig) validateCertificates() error {
 		if cert.KeyFile != nil && cert.KeyPem != nil {
 			keyFile, err := cert.KeyFile.GetOrDefault("")
 			if err != nil {
-				return fmt.Errorf("certificates[%d].key_file: %w", i, err)
+				return fmt.Errorf("certificates[%d].keyFile: %w", i, err)
 			}
 
 			keyPem, err := cert.KeyPem.GetOrDefault("")
 			if err != nil {
-				return fmt.Errorf("certificates[%d].key_pem: %w", i, err)
+				return fmt.Errorf("certificates[%d].keyPem: %w", i, err)
 			}
 
 			if keyFile != "" && keyPem != "" {
@@ -225,12 +225,12 @@ func loadTLSConfig(tlsConfig *TLSConfig) (*tls.Config, error) {
 
 	minTLS, err := tlsConfig.GetMinVersion()
 	if err != nil {
-		return nil, fmt.Errorf("min_version: %w", err)
+		return nil, fmt.Errorf("minVersion: %w", err)
 	}
 
 	maxTLS, err := tlsConfig.GetMaxVersion()
 	if err != nil {
-		return nil, fmt.Errorf("max_version: %w", err)
+		return nil, fmt.Errorf("maxVersion: %w", err)
 	}
 
 	cipherSuites, err := convertCipherSuites(tlsConfig.CipherSuites)

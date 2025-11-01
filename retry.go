@@ -12,9 +12,9 @@ type RestyRetryConfig struct {
 	// Number of retry count. Defaults to 0 (no retry).
 	Count int `json:"count,omitempty" mapstructure:"count" yaml:"count,omitempty"`
 	// The default wait time for sleep before retrying. Default is 100 milliseconds.
-	WaitTime *model.Duration `json:"wait_time,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"wait_time" yaml:"wait_time,omitempty"`
+	WaitTime *model.Duration `json:"waitTime,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"waitTime" yaml:"waitTime,omitempty"`
 	// The max wait time for sleep before retrying. Default is 2000 milliseconds.
-	MaxWaitTime *model.Duration `json:"max_wait_time,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"max_wait_time" yaml:"max_wait_time,omitempty"`
+	MaxWaitTime *model.Duration `json:"maxWaitTime,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"maxWaitTime" yaml:"maxWaitTime,omitempty"`
 }
 
 func setRestyRetryConfig(client *resty.Client, conf *RestyRetryConfig) *resty.Client {
