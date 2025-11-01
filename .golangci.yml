@@ -40,10 +40,10 @@ linters:
       # Checks the struct tag name case.
       case:
         rules:
-          json: snake
-          yaml: snake
-          mapstructure: snake
-          whatever: snake
+          json: camel
+          yaml: camel
+          mapstructure: camel
+          whatever: camel
     cyclop:
       max-complexity: 15
     wsl_v5:
@@ -66,7 +66,10 @@ linters:
     generated: strict
     # Log a warning if an exclusion rule is unused.
     warn-unused: false
-    rules: []
+    rules:
+      - path: tls.go
+        linters:
+          - tagliatelle
 
     # Which file paths to exclude: they will be analyzed, but issues from them won't be reported.
     # "/" will be replaced by the current OS file path separator to properly work on Windows.
@@ -83,7 +86,7 @@ formatters:
     - goimports
     - golines
   # Formatters settings.
-  settings: 
+  settings:
     golines:
       reformat-tags: false
 

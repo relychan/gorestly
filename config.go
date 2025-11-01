@@ -14,13 +14,13 @@ import (
 // RestyConfig contains configurations to create client.
 type RestyConfig struct {
 	// Default maximum timeout duration that is applied for all requests.
-	Timeout *model.Duration `json:"timeout,omitempty"   jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"timeout"     yaml:"timeout,omitempty"`
+	Timeout *model.Duration `json:"timeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" mapstructure:"timeout" yaml:"timeout,omitempty"`
 	// Transport stores the http.Transport configuration for the http client.
-	Transport *HTTPTransportConfig `json:"transport,omitempty" mapstructure:"transport"                                                                                      yaml:"transport,omitempty"`
+	Transport *HTTPTransportConfig `json:"transport,omitempty" mapstructure:"transport" yaml:"transport,omitempty"`
 	// The transport layer security (LTS) configuration for the mutualTLS authentication.
-	TLS *TLSConfig `json:"tls,omitempty"       mapstructure:"tls"                                                                                            yaml:"tls,omitempty"`
+	TLS *TLSConfig `json:"tls,omitempty" mapstructure:"tls" yaml:"tls,omitempty"`
 	// Retry policy of client requests.
-	Retry *RestyRetryConfig `json:"retry,omitempty"     mapstructure:"retry"                                                                                          yaml:"retry,omitempty"`
+	Retry *RestyRetryConfig `json:"retry,omitempty" mapstructure:"retry" yaml:"retry,omitempty"`
 }
 
 // ToTransport creates an http transport from configurations.
