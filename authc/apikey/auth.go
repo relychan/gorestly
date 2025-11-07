@@ -1,3 +1,4 @@
+// Package apikey implements authentication interfaces for the api key security scheme.
 package apikey
 
 import (
@@ -14,7 +15,7 @@ type APIKeyCredential struct {
 	value    string
 }
 
-var _ authscheme.HTTPAuthInjector = (*APIKeyCredential)(nil)
+var _ authscheme.HTTPClientAuthInjector = (*APIKeyCredential)(nil)
 
 // NewApiKeyCredential creates a new APIKeyCredential instance.
 func NewApiKeyCredential(config *APIKeyAuthConfig) (*APIKeyCredential, error) {
@@ -23,7 +24,7 @@ func NewApiKeyCredential(config *APIKeyAuthConfig) (*APIKeyCredential, error) {
 		return nil, fmt.Errorf("failed to create ApiKeyCredential: %w", err)
 	}
 
-	config.TokenLocation.Scheme = strings.ToLower(config.TokenLocation.Scheme)
+	config.Scheme = strings.ToLower(config.Scheme)
 
 	return &APIKeyCredential{
 		location: config.TokenLocation,

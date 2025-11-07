@@ -1,15 +1,21 @@
 package authscheme
 
 import (
+	"errors"
 	"fmt"
 )
 
+var (
+	errUnmatchedSecurityScheme = errors.New("client auth type does not match")
+	errRequiredSecurityField   = errors.New("required field")
+)
+
 // NewRequiredSecurityFieldError creates an error for required field in the security scheme config.
-func NewRequiredSecurityFieldError(scheme SecuritySchemeType, name string) error {
-	return fmt.Errorf("%s is required for the %s security scheme", name, scheme)
+func NewRequiredSecurityFieldError(scheme HTTPClientAuthType, name string) error {
+	return fmt.Errorf("%w %s for the %s client auth scheme", errRequiredSecurityField, name, scheme)
 }
 
 // NewUnmatchedSecuritySchemeError creates an error for unexpected security scheme type.
-func NewUnmatchedSecuritySchemeError(expected SecuritySchemeType, got SecuritySchemeType) error {
-	return fmt.Errorf("expected security scheme `%s`, got `%s`", expected, got)
+func NewUnmatchedSecuritySchemeError(expected HTTPClientAuthType, got HTTPClientAuthType) error {
+	return fmt.Errorf("%w, expected `%s`, got `%s`", errUnmatchedSecurityScheme, expected, got)
 }

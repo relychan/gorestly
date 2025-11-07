@@ -1,17 +1,13 @@
-package basicauth
+package digestauth
 
 import (
 	"github.com/hasura/goenvconf"
 	"github.com/relychan/gorestly/authc/authscheme"
 )
 
-// BasicAuthConfig contains configurations for the [basic] authentication.
-//
-// [basic]: https://swagger.io/docs/specification/authentication/basic-authentication
-type BasicAuthConfig struct {
-	Type authscheme.HTTPClientAuthType `json:"type" jsonschema:"enum=basic" yaml:"type"`
-	// Header where the credential will be set.
-	Header string `json:"header,omitempty" yaml:"header,omitempty"`
+// DigestAuthConfig contains configurations for the http authentication using the digest scheme.
+type DigestAuthConfig struct {
+	Type authscheme.HTTPClientAuthType `json:"type" jsonschema:"enum=digest" yaml:"type"`
 	// Username to authenticate.
 	Username goenvconf.EnvString `json:"username" yaml:"username"`
 	// Password to authenticate.
@@ -20,19 +16,19 @@ type BasicAuthConfig struct {
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
-var _ authscheme.HTTPClientAuthDefinition = (*BasicAuthConfig)(nil)
+var _ authscheme.HTTPClientAuthDefinition = (*DigestAuthConfig)(nil)
 
-// NewBasicAuthConfig creates a new BasicAuthConfig instance.
-func NewBasicAuthConfig(username, password goenvconf.EnvString) *BasicAuthConfig {
-	return &BasicAuthConfig{
-		Type:     authscheme.BasicAuthScheme,
+// NewDigestAuthConfig creates a new DigestAuthConfig instance.
+func NewDigestAuthConfig(username, password goenvconf.EnvString) *DigestAuthConfig {
+	return &DigestAuthConfig{
+		Type:     authscheme.DigestAuthScheme,
 		Username: username,
 		Password: password,
 	}
 }
 
 // Validate if the current instance is valid.
-func (ss BasicAuthConfig) Validate(strict bool) error {
+func (ss DigestAuthConfig) Validate(strict bool) error {
 	authType := ss.GetType()
 
 	if ss.Type != authType {
@@ -55,6 +51,6 @@ func (ss BasicAuthConfig) Validate(strict bool) error {
 }
 
 // GetType get the type of security scheme.
-func (ss BasicAuthConfig) GetType() authscheme.HTTPClientAuthType {
-	return authscheme.BasicAuthScheme
+func (ss DigestAuthConfig) GetType() authscheme.HTTPClientAuthType {
+	return authscheme.DigestAuthScheme
 }

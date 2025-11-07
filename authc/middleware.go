@@ -6,8 +6,8 @@ import (
 )
 
 // NewAuthMiddleware creates an auth middleware from config.
-func NewAuthMiddleware(injector authscheme.HTTPAuthInjector) resty.RequestMiddleware {
-	return func(c *resty.Client, req *resty.Request) error {
+func NewAuthMiddleware(injector authscheme.HTTPClientAuthInjector) resty.RequestMiddleware {
+	return func(_ *resty.Client, req *resty.Request) error {
 		_, err := injector.Inject(req)
 
 		return err

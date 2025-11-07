@@ -9,9 +9,7 @@ import (
 	"github.com/relychan/gorestly/authc/authscheme"
 	"github.com/relychan/gorestly/authc/basicauth"
 	"github.com/relychan/gorestly/authc/httpauth"
-	"github.com/relychan/gorestly/authc/mutualtls"
 	"github.com/relychan/gorestly/authc/oauth2scheme"
-	"github.com/relychan/gorestly/authc/openidscheme"
 )
 
 var (
@@ -24,11 +22,11 @@ var (
 //
 // [OpenAPI 3]: https://swagger.io/docs/specification/authentication
 type RestlyAuthConfig struct {
-	authscheme.SecuritySchemeDefinition
+	authscheme.HTTPClientAuthDefinition
 }
 
 type rawRestlyAuthConfig struct {
-	Type authscheme.SecuritySchemeType `json:"type" yaml:"type"`
+	Type authscheme.HTTPClientAuthType `json:"type" yaml:"type"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -48,11 +46,13 @@ func (j *RestlyAuthConfig) UnmarshalJSON(b []byte) error {
 	switch rawScheme.Type {
 	case authscheme.APIKeyScheme:
 		var config apikey.APIKeyAuthConfig
-		if err := json.Unmarshal(b, &config); err != nil {
+
+		err := json.Unmarshal(b, &config)
+		if err != nil {
 			return err
 		}
 
-		j.SecuritySchemeDefinition = &config
+		j.HTTPClientAuthDefinition = &config
 	case authscheme.BasicAuthScheme:
 		var config basicauth.BasicAuthConfig
 
@@ -61,7 +61,7 @@ func (j *RestlyAuthConfig) UnmarshalJSON(b []byte) error {
 			return err
 		}
 
-		j.SecuritySchemeDefinition = &config
+		j.HTTPClientAuthDefinition = &config
 	case authscheme.HTTPAuthScheme:
 		var config httpauth.HTTPAuthConfig
 
@@ -70,31 +70,16 @@ func (j *RestlyAuthConfig) UnmarshalJSON(b []byte) error {
 			return err
 		}
 
-		j.SecuritySchemeDefinition = &config
+		j.HTTPClientAuthDefinition = &config
 	case authscheme.OAuth2Scheme:
 		var config oauth2scheme.OAuth2Config
+
 		err := json.Unmarshal(b, &config)
 		if err != nil {
 			return err
 		}
 
-		j.SecuritySchemeDefinition = &config
-	case authscheme.OpenIDConnectScheme:
-		var config openidscheme.OpenIDConnectConfig
-		err := json.Unmarshal(b, &config)
-		if err != nil {
-			return err
-		}
-
-		j.SecuritySchemeDefinition = &config
-	case authscheme.MutualTLSScheme:
-		var config mutualtls.MutualTLSAuthConfig
-		err := json.Unmarshal(b, &config)
-		if err != nil {
-			return err
-		}
-
-		j.SecuritySchemeDefinition = &config
+		j.HTTPClientAuthDefinition = &config
 	default:
 		return fmt.Errorf("%w: %s", errUnsupportedSecurityScheme, rawScheme.Type)
 	}
@@ -104,14 +89,19 @@ func (j *RestlyAuthConfig) UnmarshalJSON(b []byte) error {
 
 // MarshalJSON implements json.Marshaler.
 func (j RestlyAuthConfig) MarshalJSON() ([]byte, error) {
-	return json.Marshal(j.SecuritySchemeDefinition)
+	return json.Marshal(j.HTTPClientAuthDefinition)
 }
 
 // Validate if the current instance is valid.
 func (ss *RestlyAuthConfig) Validate(strict bool) error {
-	if ss.SecuritySchemeDefinition == nil {
+	if ss.HTTPClientAuthDefinition == nil {
 		return errSecuritySchemeDefinitionRequired
 	}
 
-	return ss.SecuritySchemeDefinition.Validate(strict)
+	return ss.HTTPClientAuthDefinition.Validate(strict)
+}
+
+// IsZero if the current instance is empty.
+func (ss *RestlyAuthConfig) IsZero() bool {
+	return ss.HTTPClientAuthDefinition == nil
 }

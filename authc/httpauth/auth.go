@@ -1,3 +1,4 @@
+// Package httpauth implements authentication interfaces for the http security scheme.
 package httpauth
 
 import (
@@ -14,7 +15,7 @@ type HTTPCredential struct {
 	value    string
 }
 
-var _ authscheme.HTTPAuthInjector = (*HTTPCredential)(nil)
+var _ authscheme.HTTPClientAuthInjector = (*HTTPCredential)(nil)
 
 // NewHTTPCredential creates a new HTTPCredential instance.
 func NewHTTPCredential(config *HTTPAuthConfig) (*HTTPCredential, error) {
@@ -32,7 +33,7 @@ func NewHTTPCredential(config *HTTPAuthConfig) (*HTTPCredential, error) {
 	return &HTTPCredential{
 		location: authscheme.TokenLocation{
 			In:     authscheme.InHeader,
-			Name:   config.Header,
+			Name:   header,
 			Scheme: strings.ToLower(config.Scheme),
 		},
 		value: value,

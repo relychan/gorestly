@@ -11,16 +11,20 @@ import (
 type APIKeyAuthConfig struct {
 	authscheme.TokenLocation
 
-	Type  authscheme.SecuritySchemeType `json:"type" yaml:"type" jsonschema:"enum=apiKey"`
+	Type  authscheme.HTTPClientAuthType `json:"type"  jsonschema:"enum=apiKey" yaml:"type"`
 	Value goenvconf.EnvString           `json:"value" yaml:"value"`
 	// A description for security scheme.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
-var _ authscheme.SecuritySchemeDefinition = (*APIKeyAuthConfig)(nil)
+var _ authscheme.HTTPClientAuthDefinition = (*APIKeyAuthConfig)(nil)
 
 // NewAPIKeyAuthConfig creates a new APIKeyAuthConfig instance.
-func NewAPIKeyAuthConfig(name string, in authscheme.AuthLocation, value goenvconf.EnvString) *APIKeyAuthConfig {
+func NewAPIKeyAuthConfig(
+	name string,
+	in authscheme.AuthLocation,
+	value goenvconf.EnvString,
+) *APIKeyAuthConfig {
 	return &APIKeyAuthConfig{
 		Type:  authscheme.APIKeyScheme,
 		Value: value,
@@ -60,6 +64,6 @@ func (ap APIKeyAuthConfig) Validate(strict bool) error {
 }
 
 // GetType get the type of security scheme.
-func (ss APIKeyAuthConfig) GetType() authscheme.SecuritySchemeType {
+func (ss APIKeyAuthConfig) GetType() authscheme.HTTPClientAuthType {
 	return authscheme.APIKeyScheme
 }

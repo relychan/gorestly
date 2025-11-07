@@ -1,3 +1,4 @@
+// Package oauth2scheme implements authentication interfaces for OAuth2 security scheme.
 package oauth2scheme
 
 import (
@@ -17,7 +18,7 @@ type OAuth2Client struct {
 	location     authscheme.TokenLocation
 }
 
-var _ authscheme.HTTPAuthInjector = (*OAuth2Client)(nil)
+var _ authscheme.HTTPClientAuthInjector = (*OAuth2Client)(nil)
 
 // NewOAuth2Client creates an OAuth2 client from the security scheme.
 func NewOAuth2Client(config *OAuth2Config) (*OAuth2Client, error) {
@@ -29,12 +30,7 @@ func NewOAuth2Client(config *OAuth2Config) (*OAuth2Client, error) {
 		}
 	}
 
-	flow, ok := config.Flows[ClientCredentialsFlow]
-	if !ok || flow.TokenURL == nil || flow.ClientID == nil || flow.ClientSecret == nil {
-		return &OAuth2Client{
-			location: *location,
-		}, nil
-	}
+	flow := config.Flows.ClientCredentials
 
 	rawTokenURL, err := flow.TokenURL.Get()
 	if err != nil {

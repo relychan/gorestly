@@ -1,3 +1,4 @@
+// Package authscheme defines types and interfaces for security schemes.
 package authscheme
 
 import (
@@ -7,51 +8,52 @@ import (
 	"resty.dev/v3"
 )
 
-// HTTPAuthClient abstracts an interface for injecting authentication value into HTTP requests.
-type HTTPAuthInjector interface {
+// HTTPClientAuthInjector abstracts an interface for injecting authentication value into HTTP requests.
+type HTTPClientAuthInjector interface {
 	// Inject the credential into the incoming request.
 	Inject(req *resty.Request) (bool, error)
 	// InjectMock injects a mock credential into the incoming request for explaining.
 	InjectMock(req *resty.Request) bool
 }
 
-// SecuritySchemeDefinition abstracts an interface of SecurityScheme.
-type SecuritySchemeDefinition interface {
+// HTTPClientAuthDefinition abstracts an interface of the HTTP client authentication config.
+type HTTPClientAuthDefinition interface {
 	// GetType gets the type of security scheme.
-	GetType() SecuritySchemeType
+	GetType() HTTPClientAuthType
 	// Validate checks if the instance is valid.
 	Validate(strict bool) error
 }
 
-// SecuritySchemeType represents the authentication scheme enum.
-type SecuritySchemeType string
+// HTTPClientAuthType represents the authentication scheme enum.
+type HTTPClientAuthType string
 
 const (
-	APIKeyScheme        SecuritySchemeType = "apiKey"
-	BasicAuthScheme     SecuritySchemeType = "basic"
-	CookieAuthScheme    SecuritySchemeType = "cookie"
-	HTTPAuthScheme      SecuritySchemeType = "http"
-	OAuth2Scheme        SecuritySchemeType = "oauth2"
-	OpenIDConnectScheme SecuritySchemeType = "openIdConnect"
-	MutualTLSScheme     SecuritySchemeType = "mutualTLS"
+	APIKeyScheme     HTTPClientAuthType = "apiKey"
+	BasicAuthScheme  HTTPClientAuthType = "basic"
+	DigestAuthScheme HTTPClientAuthType = "digest"
+	HTTPAuthScheme   HTTPClientAuthType = "http"
+	OAuth2Scheme     HTTPClientAuthType = "oauth2"
 )
 
-var enumValueSecuritySchemes = []SecuritySchemeType{
+var enumValueHTTPClientAuthTypes = []HTTPClientAuthType{
 	APIKeyScheme,
 	HTTPAuthScheme,
 	BasicAuthScheme,
-	CookieAuthScheme,
+	DigestAuthScheme,
 	OAuth2Scheme,
-	OpenIDConnectScheme,
-	MutualTLSScheme,
 }
 
+var errInvalidHTTPClientAuthType = fmt.Errorf(
+	"invalid HTTPClientAuthType. Expected %v",
+	enumValueHTTPClientAuthTypes,
+)
+
 // Validate checks if the security scheme type is valid.
-func (j SecuritySchemeType) Validate() error {
-	if !slices.Contains(GetSupportedSecuritySchemeTypes(), j) {
+func (j HTTPClientAuthType) Validate() error {
+	if !slices.Contains(GetSupportedHTTPClientAuthTypes(), j) {
 		return fmt.Errorf(
-			"invalid SecuritySchemeType. Expected %v, got <%s>",
-			enumValueSecuritySchemes,
+			"%w, got <%s>",
+			errInvalidHTTPClientAuthType,
 			j,
 		)
 	}
@@ -59,16 +61,16 @@ func (j SecuritySchemeType) Validate() error {
 	return nil
 }
 
-// ParseSecuritySchemeType parses SecurityScheme from string.
-func ParseSecuritySchemeType(value string) (SecuritySchemeType, error) {
-	result := SecuritySchemeType(value)
+// ParseHTTPClientAuthType parses SecurityScheme from string.
+func ParseHTTPClientAuthType(value string) (HTTPClientAuthType, error) {
+	result := HTTPClientAuthType(value)
 
 	return result, result.Validate()
 }
 
-// GetSupportedSecuritySchemeTypes get the list of supported security scheme types.
-func GetSupportedSecuritySchemeTypes() []SecuritySchemeType {
-	return enumValueSecuritySchemes
+// GetSupportedHTTPClientAuthTypes get the list of supported security scheme types.
+func GetSupportedHTTPClientAuthTypes() []HTTPClientAuthType {
+	return enumValueHTTPClientAuthTypes
 }
 
 // AuthLocation represents the location enum for setting authentication value.
@@ -80,14 +82,20 @@ const (
 	InCookie AuthLocation = "cookie"
 )
 
-var enumValuesAuthLocations = []AuthLocation{InHeader, InQuery, InCookie}
+var (
+	enumValuesAuthLocations = []AuthLocation{InHeader, InQuery, InCookie}
+	errInvalidAuthLocation  = fmt.Errorf(
+		"invalid AuthLocation. Expected %v",
+		enumValuesAuthLocations,
+	)
+)
 
 // Validate checks if the security scheme type is valid.
 func (j AuthLocation) Validate() error {
 	if !slices.Contains(GetSupportedAuthLocations(), j) {
 		return fmt.Errorf(
-			"invalid AuthLocation. Expected %v, got <%s>",
-			enumValuesAuthLocations,
+			"%w, got <%s>",
+			errInvalidAuthLocation,
 			j,
 		)
 	}

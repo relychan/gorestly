@@ -1,3 +1,4 @@
+// Package basicauth implements authentication interfaces for the basic security scheme.
 package basicauth
 
 import (
@@ -16,7 +17,7 @@ type BasicCredential struct {
 	header   string
 }
 
-var _ authscheme.HTTPAuthInjector = (*BasicCredential)(nil)
+var _ authscheme.HTTPClientAuthInjector = (*BasicCredential)(nil)
 
 // NewBasicCredential creates a new BasicCredential instance.
 func NewBasicCredential(config *BasicAuthConfig) (*BasicCredential, error) {

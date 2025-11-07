@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/relychan/gorestly/authc"
+	"github.com/relychan/gorestly/authc/digestauth"
 	"go.opentelemetry.io/otel/trace"
 	"resty.dev/v3"
 )
@@ -51,15 +52,9 @@ func NewFromConfig(config RestyConfig, options ...Option) (*resty.Client, error)
 		}
 	}
 
-	if config.Authentication != nil {
-		injector, err := authc.NewInjectorFromConfig(*config.Authentication, config.TLS != nil)
-		if err != nil {
-			return nil, err
-		}
-
-		if injector != nil {
-			client.AddRequestMiddleware(authc.NewAuthMiddleware(injector))
-		}
+	err = setClientAuthentication(client, config.Authentication)
+	if err != nil {
+		return nil, err
 	}
 
 	if config.Timeout != nil && *config.Timeout > 0 {
@@ -69,6 +64,28 @@ func NewFromConfig(config RestyConfig, options ...Option) (*resty.Client, error)
 	client = setRestyRetryConfig(client, config.Retry)
 
 	return addContentDecompresser(client), nil
+}
+
+func setClientAuthentication(client *resty.Client, authentication *authc.RestlyAuthConfig) error {
+	if authentication == nil || authentication.IsZero() {
+		return nil
+	}
+
+	digestAuthConfig, ok := authentication.HTTPClientAuthDefinition.(*digestauth.DigestAuthConfig)
+	if ok {
+		return digestauth.SetDigestAuth(client, digestAuthConfig)
+	}
+
+	injector, err := authc.NewInjectorFromConfig(*authentication)
+	if err != nil {
+		return err
+	}
+
+	if injector != nil {
+		client.AddRequestMiddleware(authc.NewAuthMiddleware(injector))
+	}
+
+	return nil
 }
 
 type clientOptions struct {

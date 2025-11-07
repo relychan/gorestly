@@ -10,7 +10,7 @@ import (
 // TokenLocation contains the configuration for the location of the access token.
 type TokenLocation struct {
 	// Location where the api key is in.
-	In AuthLocation `json:"in" yaml:"in" jsonschema:"enum=header,enum=query,enum=cookie"`
+	In AuthLocation `json:"in" jsonschema:"enum=header,enum=query,enum=cookie" yaml:"in"`
 	// Name of the field to validate, for example, Authorization header.
 	Name string `json:"name" yaml:"name"`
 	// The name of the HTTP Authentication scheme to be used in the Authorization header as defined in RFC7235.
@@ -19,17 +19,13 @@ type TokenLocation struct {
 	Scheme string `json:"scheme,omitempty" yaml:"scheme,omitempty"`
 }
 
-// InjectRequestToken injects the authentication token value into the request.
-func (tl TokenLocation) InjectRequest(req *resty.Request, value string, replace bool) (bool, error) {
-	switch tl.Scheme {
-	case "bearer":
-		value = "Bearer " + value
-	case "basic":
-		value = "Basic " + value
-	case "":
-	default:
-		value = tl.Scheme + " " + value
-	}
+// InjectRequest injects the authentication token value into the request.
+func (tl TokenLocation) InjectRequest(
+	req *resty.Request,
+	value string,
+	replace bool,
+) (bool, error) {
+	value = tl.addTokenSchemeToValue(value)
 
 	switch tl.In {
 	case InHeader:
@@ -83,4 +79,17 @@ func (tl TokenLocation) InjectRequest(req *resty.Request, value string, replace 
 	}
 
 	return false, nil
+}
+
+func (tl TokenLocation) addTokenSchemeToValue(value string) string {
+	switch tl.Scheme {
+	case "bearer":
+		return "Bearer " + value
+	case "basic":
+		return "Basic " + value
+	case "":
+		return value
+	default:
+		return tl.Scheme + " " + value
+	}
 }
