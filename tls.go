@@ -60,7 +60,9 @@ type TLSClientCertificate struct {
 }
 
 // LoadKeyPair loads the X509 key pair from configurations.
-func (tc TLSClientCertificate) LoadKeyPair(tlsConfig TLSClientCertificate) (*tls.Certificate, error) {
+func (tc TLSClientCertificate) LoadKeyPair(
+	tlsConfig TLSClientCertificate,
+) (*tls.Certificate, error) {
 	certData, err := loadEitherCertPemOrFile(tlsConfig.CertPem, tlsConfig.CertFile)
 	if err != nil {
 		return nil, fmt.Errorf("certificate error: %w", err)
