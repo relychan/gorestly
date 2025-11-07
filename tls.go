@@ -59,16 +59,22 @@ type TLSClientCertificate struct {
 	KeyPem *goenvconf.EnvString `json:"keyPem,omitempty" mapstructure:"keyPem" yaml:"keyPem,omitempty"`
 }
 
+// IsZero checks if the client certificate is empty.
+func (tc TLSClientCertificate) IsZero() bool {
+	return ((tc.CertPem == nil || tc.CertPem.IsZero()) &&
+		(tc.CertFile == nil || tc.CertFile.IsZero())) &&
+		((tc.KeyFile == nil || tc.KeyFile.IsZero()) &&
+			(tc.KeyPem == nil || tc.KeyPem.IsZero()))
+}
+
 // LoadKeyPair loads the X509 key pair from configurations.
-func (tc TLSClientCertificate) LoadKeyPair(
-	tlsConfig TLSClientCertificate,
-) (*tls.Certificate, error) {
-	certData, err := loadEitherCertPemOrFile(tlsConfig.CertPem, tlsConfig.CertFile)
+func (tc TLSClientCertificate) LoadKeyPair() (*tls.Certificate, error) {
+	certData, err := loadEitherCertPemOrFile(tc.CertPem, tc.CertFile)
 	if err != nil {
 		return nil, fmt.Errorf("certificate error: %w", err)
 	}
 
-	keyData, err := loadEitherCertPemOrFile(tlsConfig.KeyPem, tlsConfig.KeyFile)
+	keyData, err := loadEitherCertPemOrFile(tc.KeyPem, tc.KeyFile)
 	if err != nil {
 		return nil, fmt.Errorf("key error: %w", err)
 	}
@@ -440,7 +446,7 @@ func addTLSClientCertificates(client *resty.Client, certs []TLSClientCertificate
 	results := make([]tls.Certificate, 0, len(certs))
 
 	for i, cert := range certs {
-		c, err := cert.LoadKeyPair(cert)
+		c, err := cert.LoadKeyPair()
 		if err != nil {
 			return fmt.Errorf("failed to load client certificate at %d: %w", i, err)
 		}
