@@ -59,6 +59,26 @@ type TLSClientCertificate struct {
 	KeyPem *goenvconf.EnvString `json:"keyPem,omitempty" mapstructure:"keyPem" yaml:"keyPem,omitempty"`
 }
 
+// LoadKeyPair loads the X509 key pair from configurations.
+func (tc TLSClientCertificate) LoadKeyPair(tlsConfig TLSClientCertificate) (*tls.Certificate, error) {
+	certData, err := loadEitherCertPemOrFile(tlsConfig.CertPem, tlsConfig.CertFile)
+	if err != nil {
+		return nil, fmt.Errorf("certificate error: %w", err)
+	}
+
+	keyData, err := loadEitherCertPemOrFile(tlsConfig.KeyPem, tlsConfig.KeyFile)
+	if err != nil {
+		return nil, fmt.Errorf("key error: %w", err)
+	}
+
+	certificate, err := tls.X509KeyPair(certData, keyData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load TLS cert and key PEMs: %w", err)
+	}
+
+	return &certificate, nil
+}
+
 // TLSConfig represents the transport layer security (LTS) configuration for the mutualTLS authentication.
 type TLSConfig struct {
 	// Interval to reload certificates. Only takes effect for file-path certificates.
@@ -418,7 +438,7 @@ func addTLSClientCertificates(client *resty.Client, certs []TLSClientCertificate
 	results := make([]tls.Certificate, 0, len(certs))
 
 	for i, cert := range certs {
-		c, err := loadClientCertificateKeyPair(cert)
+		c, err := cert.LoadKeyPair(cert)
 		if err != nil {
 			return fmt.Errorf("failed to load client certificate at %d: %w", i, err)
 		}
@@ -447,25 +467,6 @@ func loadCertificateString(certEnv goenvconf.EnvString) ([]byte, error) {
 	}
 
 	return certStr, nil
-}
-
-func loadClientCertificateKeyPair(tlsConfig TLSClientCertificate) (*tls.Certificate, error) {
-	certData, err := loadEitherCertPemOrFile(tlsConfig.CertPem, tlsConfig.CertFile)
-	if err != nil {
-		return nil, fmt.Errorf("certificate error: %w", err)
-	}
-
-	keyData, err := loadEitherCertPemOrFile(tlsConfig.KeyPem, tlsConfig.KeyFile)
-	if err != nil {
-		return nil, fmt.Errorf("key error: %w", err)
-	}
-
-	certificate, err := tls.X509KeyPair(certData, keyData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load TLS cert and key PEMs: %w", err)
-	}
-
-	return &certificate, nil
 }
 
 func loadEitherCertPemOrFile(certPemEnv, certFileEnv *goenvconf.EnvString) ([]byte, error) {
