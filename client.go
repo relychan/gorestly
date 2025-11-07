@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/relychan/gorestly/authc"
 	"go.opentelemetry.io/otel/trace"
 	"resty.dev/v3"
 )
@@ -47,6 +48,17 @@ func NewFromConfig(config RestyConfig, options ...Option) (*resty.Client, error)
 		err = addTLSCertificates(client, config.TLS)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if config.Authentication != nil {
+		injector, err := authc.NewInjectorFromConfig(*config.Authentication, config.TLS != nil)
+		if err != nil {
+			return nil, err
+		}
+
+		if injector != nil {
+			client.AddRequestMiddleware(authc.NewAuthMiddleware(injector))
 		}
 	}
 
