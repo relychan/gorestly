@@ -10,13 +10,9 @@ import (
 //
 // [bearer]: https://swagger.io/docs/specification/authentication/bearer-authentication
 type HTTPAuthConfig struct {
+	authscheme.TokenLocation `yaml:",inline"`
+
 	Type authscheme.HTTPClientAuthType `json:"type" jsonschema:"enum=http" yaml:"type"`
-	// Name of the field to validate, for example, Authorization header.
-	Header string `json:"header" jsonschema:"default=Authorization" yaml:"header"`
-	// The name of the HTTP Authentication scheme to be used in the Authorization header as defined in RFC7235.
-	// The values used SHOULD be registered in the IANA Authentication Scheme registry. https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
-	// The value is case-insensitive, as defined in RFC7235.
-	Scheme string `json:"scheme" jsonschema:"default=bearer" yaml:"scheme"`
 	// Value of the access token.
 	Value goenvconf.EnvString `json:"value" yaml:"value"`
 	// A description for security scheme.
@@ -26,29 +22,40 @@ type HTTPAuthConfig struct {
 var _ authscheme.HTTPClientAuthDefinition = (*HTTPAuthConfig)(nil)
 
 // NewHTTPAuthConfig creates a new HTTPAuthConfig instance.
-func NewHTTPAuthConfig(scheme string, header string, value goenvconf.EnvString) *HTTPAuthConfig {
+func NewHTTPAuthConfig(
+	location authscheme.TokenLocation,
+	value goenvconf.EnvString,
+) *HTTPAuthConfig {
 	return &HTTPAuthConfig{
-		Type:   authscheme.HTTPAuthScheme,
-		Header: header,
-		Scheme: scheme,
-		Value:  value,
+		Type:          authscheme.HTTPAuthScheme,
+		Value:         value,
+		TokenLocation: location,
 	}
 }
 
 // Validate if the current instance is valid.
-func (ss HTTPAuthConfig) Validate(_ bool) error {
-	authType := ss.GetType()
+func (tac HTTPAuthConfig) Validate(strict bool) error {
+	authType := tac.GetType()
 
-	if ss.Type != authType {
-		return authscheme.NewUnmatchedSecuritySchemeError(authType, ss.Type)
+	if tac.Type != authType {
+		return authscheme.NewUnmatchedSecuritySchemeError(authType, tac.Type)
 	}
 
-	if ss.Scheme == "" {
-		return authscheme.NewRequiredSecurityFieldError(authType, "scheme")
+	if tac.Name == "" {
+		return authscheme.NewRequiredSecurityFieldError(authType, "name")
 	}
 
-	if ss.Header == "" {
-		return authscheme.NewRequiredSecurityFieldError(authType, "header")
+	err := tac.In.Validate()
+	if err != nil {
+		return err
+	}
+
+	if !strict {
+		return nil
+	}
+
+	if tac.Value.IsZero() {
+		return authscheme.NewRequiredSecurityFieldError(authType, "value")
 	}
 
 	return nil
@@ -56,5 +63,5 @@ func (ss HTTPAuthConfig) Validate(_ bool) error {
 
 // GetType get the type of security scheme.
 func (ss HTTPAuthConfig) GetType() authscheme.HTTPClientAuthType {
-	return ss.Type
+	return authscheme.HTTPAuthScheme
 }

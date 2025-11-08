@@ -3,7 +3,6 @@ package authc
 import (
 	"fmt"
 
-	"github.com/relychan/gorestly/authc/apikey"
 	"github.com/relychan/gorestly/authc/authscheme"
 	"github.com/relychan/gorestly/authc/basicauth"
 	"github.com/relychan/gorestly/authc/httpauth"
@@ -13,8 +12,6 @@ import (
 // NewInjectorFromConfig creates an injector from RestlySecurityScheme configuration.
 func NewInjectorFromConfig(config RestlyAuthConfig) (authscheme.HTTPClientAuthInjector, error) {
 	switch conf := config.HTTPClientAuthDefinition.(type) {
-	case *apikey.APIKeyAuthConfig:
-		return apikey.NewApiKeyCredential(conf)
 	case *basicauth.BasicAuthConfig:
 		return basicauth.NewBasicCredential(conf)
 	case *httpauth.HTTPAuthConfig:

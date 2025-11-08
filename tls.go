@@ -91,7 +91,7 @@ func (tc TLSClientCertificate) LoadKeyPair() (*tls.Certificate, error) {
 type TLSConfig struct {
 	// Interval to reload certificates. Only takes effect for file-path certificates.
 	// Default value is 24 hours.
-	ReloadInterval *model.Duration `json:"reloadInterval,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"reloadInterval"`
+	ReloadInterval *model.Duration `json:"reloadInterval,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"reloadInterval"`
 	// RootCAFile represents paths to root certificates. For a client this verifies the server certificate. For a server this verifies client certificates.
 	// If empty uses system root CA.
 	RootCAFile []goenvconf.EnvString `json:"rootCAFile,omitempty" yaml:"rootCAFile,omitempty"`

@@ -15,7 +15,7 @@ import (
 // RestyConfig contains configurations to create client.
 type RestyConfig struct {
 	// Default maximum timeout duration that is applied for all requests.
-	Timeout *model.Duration `json:"timeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"timeout,omitempty"`
+	Timeout *model.Duration `json:"timeout,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"timeout,omitempty"`
 	// Transport stores the http.Transport configuration for the http client.
 	Transport *HTTPTransportConfig `json:"transport,omitempty" yaml:"transport,omitempty"`
 	// The transport layer security (LTS) configuration for the mutualTLS authentication.
@@ -55,21 +55,21 @@ func (c *RestyConfig) ToTransport() (*http.Transport, error) {
 type RestyDialerConfig struct {
 	// The maximum amount of time a dial will wait for a connect to complete.
 	// If Deadline is also set, it may fail earlier.
-	Timeout *model.Duration `json:"timeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"timeout"`
+	Timeout *model.Duration `json:"timeout,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"timeout"`
 	// Keep-alive probes are enabled by default.
 	KeepAliveEnabled *bool `json:"keepAliveEnabled,omitempty" yaml:"keepAliveEnabled"`
 	// KeepAliveInterval is the time between keep-alive probes. If zero, a default value of 15 seconds is used.
-	KeepAliveInterval *model.Duration `json:"keepAliveInterval,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"keepAliveInterval"`
+	KeepAliveInterval *model.Duration `json:"keepAliveInterval,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"keepAliveInterval"`
 	// KeepAliveCount is the maximum number of keep-alive probes that can go unanswered before dropping a connection.
 	// If zero, a default value of 9 is used.
 	KeepAliveCount *int `json:"keepAliveCount,omitempty" jsonschema:"nullable,min=0" yaml:"keepAliveCount"`
 	// KeepAliveIdle is the time that the connection must be idle before the first keep-alive probe is sent.
 	// If zero, a default value of 15 seconds is used.
-	KeepAliveIdle *model.Duration `json:"keepAliveIdle,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"keepAliveIdle"`
+	KeepAliveIdle *model.Duration `json:"keepAliveIdle,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"keepAliveIdle"`
 	// FallbackDelay specifies the length of time to wait before spawning a RFC 6555 Fast Fallback connection.
 	// That is, this is the amount of time to wait for IPv6 to succeed before assuming that IPv6 is misconfigured and falling back to IPv4.
 	// If zero, a default delay of 300ms is used. A negative value disables Fast Fallback support.
-	FallbackDelay *model.Duration `json:"fallbackDelay,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"fallbackDelay"`
+	FallbackDelay *model.Duration `json:"fallbackDelay,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"fallbackDelay"`
 }
 
 // HTTPTransportConfig stores the http.Transport configuration for the http client.
@@ -77,15 +77,15 @@ type HTTPTransportConfig struct {
 	// Options the http.Dialer to connect to an address
 	Dialer *RestyDialerConfig `json:"dialer,omitempty" yaml:"dialer"`
 	// Idle connection timeout. The maximum amount of time an idle (keep-alive) connection will remain idle before closing itself. Zero means no limit.
-	IdleConnTimeout *model.Duration `json:"idleConnTimeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"idleConnTimeout"`
+	IdleConnTimeout *model.Duration `json:"idleConnTimeout,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"idleConnTimeout"`
 	// Response header timeout, if non-zero, specifies the amount of time to wait for a server's response headers after fully writing the request (including its body, if any).
 	// This time does not include the time to read the response body.
 	// This timeout is used to cover cases where the tcp connection works but the server never answers.
-	ResponseHeaderTimeout *model.Duration `json:"responseHeaderTimeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"responseHeaderTimeout"`
+	ResponseHeaderTimeout *model.Duration `json:"responseHeaderTimeout,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"responseHeaderTimeout"`
 	// TLS handshake timeout is the maximum amount of time to wait for a TLS handshake. Zero means no timeout.
-	TLSHandshakeTimeout *model.Duration `json:"tlsHandshakeTimeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"tlsHandshakeTimeout"`
+	TLSHandshakeTimeout *model.Duration `json:"tlsHandshakeTimeout,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"tlsHandshakeTimeout"`
 	// Expect continue timeout, if non-zero, specifies the amount of time to wait for a server's first response headers after fully writing the request headers if the request has an "Expect: 100-continue" header.
-	ExpectContinueTimeout *model.Duration `json:"expectContinueTimeout,omitempty" jsonschema:"nullable,type=string,pattern=^((([0-9]+h)?([0-9]+m)?([0-9]+s))|(([0-9]+h)?([0-9]+m))|([0-9]+h))$" yaml:"expectContinueTimeout"`
+	ExpectContinueTimeout *model.Duration `json:"expectContinueTimeout,omitempty" jsonschema:"oneof_ref=#/$defs/Duration,oneof_type=null" yaml:"expectContinueTimeout"`
 	// MaxIdleConns controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit.
 	MaxIdleConns *int `json:"maxIdleConns,omitempty" jsonschema:"nullable,min=0" yaml:"maxIdleConns"`
 	// MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive) connections to keep per-host.

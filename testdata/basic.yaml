@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../jsonschema/gorestly.schema.json
+timeout: 60s
+transport: {}
+authentication:
+  type: basic
+  header: WWW-Authorization
+  username:
+    env: BASIC_USER
+  password:
+    env: BASIC_PASSWORD

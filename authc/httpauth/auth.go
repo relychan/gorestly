@@ -21,20 +21,26 @@ var _ authscheme.HTTPClientAuthInjector = (*HTTPCredential)(nil)
 func NewHTTPCredential(config *HTTPAuthConfig) (*HTTPCredential, error) {
 	value, err := config.Value.Get()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create ApiKeyCredential: %w", err)
+		return nil, fmt.Errorf("failed to create HTTP credential: %w", err)
 	}
 
-	header := config.Header
+	if config.In == "" {
+		config.In = authscheme.InHeader
+	}
+
+	header := config.Name
 
 	if header == "" {
 		header = "Authorization"
 	}
 
+	scheme := strings.TrimSpace(config.Scheme)
+
 	return &HTTPCredential{
 		location: authscheme.TokenLocation{
 			In:     authscheme.InHeader,
 			Name:   header,
-			Scheme: strings.ToLower(config.Scheme),
+			Scheme: strings.ToLower(scheme),
 		},
 		value: value,
 	}, nil

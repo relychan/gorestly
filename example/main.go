@@ -34,7 +34,7 @@ func main() {
 	}))
 
 	timeout := 10 * model.Duration(time.Second)
-	client, err := gorestly.NewFromConfig(
+	client, err := gorestly.NewClientFromConfig(
 		gorestly.RestyConfig{
 			Timeout: &timeout,
 		},

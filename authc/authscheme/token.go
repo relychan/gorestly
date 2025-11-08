@@ -1,8 +1,6 @@
 package authscheme
 
 import (
-	"net/http"
-
 	"github.com/relychan/goutils"
 	"resty.dev/v3"
 )
@@ -58,6 +56,7 @@ func (tl TokenLocation) InjectRequest(
 
 		return true, nil
 	case InCookie:
+		// Cookies should be forwarded from the frontend client side.
 		if !replace {
 			for _, cookie := range req.Cookies {
 				if cookie.Name == tl.Name && value != "" {
@@ -65,17 +64,6 @@ func (tl TokenLocation) InjectRequest(
 				}
 			}
 		}
-
-		if value == "" {
-			return false, nil
-		}
-
-		req.SetCookie(&http.Cookie{
-			Name:  tl.Name,
-			Value: value,
-		})
-
-		return true, nil
 	}
 
 	return false, nil

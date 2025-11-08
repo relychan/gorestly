@@ -12,8 +12,8 @@ import (
 	"resty.dev/v3"
 )
 
-// NewFromConfig creates a resty client with configuration.
-func NewFromConfig(config RestyConfig, options ...Option) (*resty.Client, error) {
+// NewClientFromConfig creates a resty client with configuration.
+func NewClientFromConfig(config RestyConfig, options ...Option) (*resty.Client, error) {
 	opts := &clientOptions{
 		Logger: slog.Default(),
 	}
