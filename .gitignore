@@ -1,2 +1,5 @@
 go.work
 go.work.sum
+coverage/
+coverage.out
+testdata/tls/certs/
