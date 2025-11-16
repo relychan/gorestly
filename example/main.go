@@ -2,38 +2,47 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/hasura/gotel"
 	"github.com/prometheus/common/model"
 	"github.com/relychan/gorestly"
-	"go.opentelemetry.io/contrib/propagators/b3"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"resty.dev/v3"
 )
 
 var tracer = otel.Tracer("gorestly")
 
 func main() {
-	traceProvider := setupTraceProvider(context.Background())
-	defer func() {
-		_ = traceProvider.Shutdown(context.Background())
-	}()
-
-	otel.SetTracerProvider(traceProvider)
-
 	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		// Level: slog.LevelDebug,
 	}))
 
+	_ = os.Setenv("OTEL_METRIC_EXPORT_INTERVAL", "1000")
+
+	otlpConfig := &gotel.OTLPConfig{
+		ServiceName:         "restly",
+		OtlpTracesEndpoint:  "http://localhost:4317",
+		OtlpMetricsEndpoint: "http://localhost:9090/api/v1/otlp/v1/metrics",
+		OtlpMetricsProtocol: gotel.OTLPProtocolHTTPProtobuf,
+		MetricsExporter:     gotel.OTELMetricsExporterOTLP,
+	}
+
+	exporters, err := gotel.SetupOTelExporters(context.Background(), otlpConfig, "restly", logger)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func() {
+		_ = exporters.Shutdown(context.Background())
+	}()
+
 	timeout := 10 * model.Duration(time.Second)
+
 	client, err := gorestly.NewClientFromConfig(
 		gorestly.RestyConfig{
 			Timeout: &timeout,
@@ -44,38 +53,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	defer func() {
 		_ = client.Close()
 	}()
+
+	client.EnableTrace()
 
 	for i := range 100 {
 		getTodo(client, i)
 		createPost(client, i)
 		time.Sleep(time.Second)
 	}
-}
-
-func setupTraceProvider(ctx context.Context) *trace.TracerProvider {
-	propagator := propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		b3.New(b3.WithInjectEncoding(b3.B3MultipleHeader)),
-	)
-
-	otel.SetTextMapPropagator(propagator)
-
-	traceExporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithEndpoint("localhost:4317"),
-		otlptracegrpc.WithInsecure(),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	resources := resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceName("gorestly"),
-	)
-	return trace.NewTracerProvider(trace.WithResource(resources), trace.WithBatcher(traceExporter))
 }
 
 func getTodo(client *resty.Client, id int) {
@@ -92,7 +81,6 @@ func getTodo(client *resty.Client, id int) {
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-
 }
 
 func createPost(client *resty.Client, id int) {

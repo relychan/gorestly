@@ -8,6 +8,8 @@ import (
 
 	"github.com/relychan/gorestly/authc"
 	"github.com/relychan/gorestly/authc/digestauth"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"resty.dev/v3"
 )
@@ -36,9 +38,9 @@ func NewClientFromConfig(config RestyConfig, options ...Option) (*resty.Client, 
 		OnDebugLog(createDebugLogCallback(opts.Logger)).
 		SetLogger(&slogWrapper{Logger: opts.Logger})
 
-	if opts.Tracer != nil {
-		client = client.AddRequestMiddleware(createRequestTracingMiddleware(opts)).
-			AddResponseMiddleware(responseTracingMiddleware)
+	err = addTelemetryMiddlewares(client, opts)
+	if err != nil {
+		return nil, err
 	}
 
 	if !isDebug {
@@ -89,10 +91,16 @@ func setClientAuthentication(client *resty.Client, authentication *authc.RestlyA
 }
 
 type clientOptions struct {
-	Logger                     *slog.Logger
-	Tracer                     trace.Tracer
-	DisableHighCardinalityPath bool
+	Logger                    *slog.Logger
+	Tracer                    trace.Tracer
+	Meter                     metric.Meter
+	TraceHighCardinalityPath  bool
+	MetricHighCardinalityPath bool
+	CustomAttributesFunc      CustomAttributesFunc
 }
+
+// CustomAttributesFunc abstracts a function to add custom attributes to spans and metrics.
+type CustomAttributesFunc func(*resty.Response) []attribute.KeyValue
 
 // Option abstracts a function to modify client options.
 type Option func(*clientOptions)
@@ -113,9 +121,30 @@ func WithTracer(tracer trace.Tracer) Option {
 	}
 }
 
-// WithDisableHighCardinalityPath disables high cardinality path on tracing and metrics.
-func WithDisableHighCardinalityPath(disabled bool) Option {
+// WithMeter create an option to set the meter for metrics.
+func WithMeter(meter metric.Meter) Option {
 	return func(co *clientOptions) {
-		co.DisableHighCardinalityPath = disabled
+		co.Meter = meter
+	}
+}
+
+// WithTraceHighCardinalityPath enables high cardinality path on traces.
+func WithTraceHighCardinalityPath(enabled bool) Option {
+	return func(co *clientOptions) {
+		co.TraceHighCardinalityPath = enabled
+	}
+}
+
+// WithMetricHighCardinalityPath enables high cardinality path on metrics.
+func WithMetricHighCardinalityPath(enabled bool) Option {
+	return func(co *clientOptions) {
+		co.MetricHighCardinalityPath = enabled
+	}
+}
+
+// WithCustomAttributesFunc set the function to add custom attributes to spans and metrics.
+func WithCustomAttributesFunc(fn CustomAttributesFunc) Option {
+	return func(co *clientOptions) {
+		co.CustomAttributesFunc = fn
 	}
 }
