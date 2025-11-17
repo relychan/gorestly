@@ -3,9 +3,9 @@ package gorestly
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/hasura/gotel/otelutils"
+	"github.com/relychan/goutils"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -30,7 +30,11 @@ func addTelemetryMiddlewares(c *resty.Client, opts *clientOptions) error {
 		opts.Meter = otel.Meter("gorestly")
 	}
 
-	activeRequestsMetric, err := httpconv.NewClientActiveRequests(opts.Meter)
+	activeRequestsMetric, err := opts.Meter.Int64UpDownCounter(
+		"http.client.active_requests",
+		metric.WithDescription("Number of active HTTP requests."),
+		metric.WithUnit("{request}"),
+	)
 	if err != nil {
 		return err
 	}
@@ -40,24 +44,21 @@ func addTelemetryMiddlewares(c *resty.Client, opts *clientOptions) error {
 	return addTelemetryResponseMiddlewares(c, opts, activeRequestsMetric)
 }
 
-func addTelemetryRequestMiddleware( //nolint:funlen
+func addTelemetryRequestMiddleware(
 	c *resty.Client,
 	opts *clientOptions,
-	activeRequestsMetric httpconv.ClientActiveRequests,
+	activeRequestsMetric metric.Int64UpDownCounter,
 ) {
 	c.AddRequestMiddleware(func(client *resty.Client, req *resty.Request) error {
+		activeRequestsMetric.Add(req.Context(), 1)
+
 		spanName := req.Method
 
-		reqURL, err := url.Parse(req.URL)
-		if err != nil {
-			client.Logger().
-				Warnf("", fmt.Sprintf("failed to parse url %s: %s", req.URL, err.Error()))
-
-			reqURL = &url.URL{
-				Path: req.URL,
+		if opts.TraceHighCardinalityPath {
+			reqURL, err := goutils.ParseRelativeOrHTTPURL(req.URL)
+			if err == nil {
+				spanName += " " + reqURL.Path
 			}
-		} else if opts.TraceHighCardinalityPath {
-			spanName += " " + reqURL.Path
 		}
 
 		ctx, span := opts.Tracer.Start(
@@ -67,34 +68,9 @@ func addTelemetryRequestMiddleware( //nolint:funlen
 		)
 
 		span.SetAttributes(
-			semconv.URLFull(req.URL),
 			semconv.NetworkProtocolName("http"),
-		)
-
-		hostname, port, err := ParseHostNameAndPortFromURL(reqURL)
-		if err != nil {
-			client.Logger().
-				Warnf("", fmt.Sprintf("failed to parse hostname and port from host %s: %s", reqURL.Host, err.Error()))
-		}
-
-		commonAttrs := []attribute.KeyValue{
-			semconv.ServerAddress(hostname),
-			semconv.ServerPort(port),
 			httpRequestMethodAttr(req.Method),
-		}
-
-		span.SetAttributes(commonAttrs...)
-
-		metricWithRequestAttrs := commonAttrs
-
-		if opts.MetricHighCardinalityPath {
-			metricWithRequestAttrs = append(
-				metricWithRequestAttrs,
-				semconv.URLPath(reqURL.Path),
-			)
-		}
-
-		activeRequestsMetric.Add(ctx, 1, hostname, port, metricWithRequestAttrs...)
+		)
 
 		if req.RawRequest != nil && req.RawRequest.ContentLength > 0 {
 			span.SetAttributes(
@@ -119,7 +95,7 @@ func addTelemetryRequestMiddleware( //nolint:funlen
 func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 	c *resty.Client,
 	opts *clientOptions,
-	activeRequestsMetric httpconv.ClientActiveRequests,
+	activeRequestsMetric metric.Int64UpDownCounter,
 ) error {
 	idleConnectionDurationMetric, err := opts.Meter.Float64Histogram(
 		"http.client.idle_connection.duration",
@@ -201,6 +177,12 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 		ctx := resp.Request.Context()
 		span := trace.SpanFromContext(ctx)
 
+		activeRequestsMetric.Add(ctx, -1)
+
+		if !span.IsRecording() {
+			return nil
+		}
+
 		requestMethod := httpconv.RequestMethodAttr(resp.Request.Method)
 
 		hostname, port, err := ParseHostNameAndPortFromURL(resp.Request.RawRequest.URL)
@@ -215,6 +197,8 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 			semconv.URLScheme(resp.RawResponse.Request.URL.Scheme),
 		}
 
+		span.SetAttributes(commonAttrs...)
+
 		metricWithRequestAttrs := commonAttrs
 		metricWithRequestAttrs = append(
 			metricWithRequestAttrs,
@@ -226,12 +210,6 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 				metricWithRequestAttrs,
 				semconv.URLPath(resp.Request.RawRequest.URL.Path),
 			)
-		}
-
-		activeRequestsMetric.Add(ctx, -1, hostname, port, metricWithRequestAttrs...)
-
-		if !span.IsRecording() {
-			return nil
 		}
 
 		statusCode := resp.StatusCode()
@@ -251,7 +229,11 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 			semconv.NetworkProtocolName("http"),
 		)
 
-		span.SetAttributes(statusCodeAttr, protocolVersionAttr)
+		span.SetAttributes(
+			statusCodeAttr,
+			protocolVersionAttr,
+			semconv.URLFull(resp.RawResponse.Request.URL.String()),
+		)
 
 		if opts.CustomAttributesFunc != nil {
 			customAttrs := opts.CustomAttributesFunc(resp)

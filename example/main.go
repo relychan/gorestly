@@ -58,7 +58,7 @@ func main() {
 		_ = client.Close()
 	}()
 
-	client.EnableTrace()
+	client = client.EnableTrace().SetBaseURL("https://jsonplaceholder.typicode.com")
 
 	for i := range 100 {
 		getTodo(client, i)
@@ -71,7 +71,7 @@ func getTodo(client *resty.Client, id int) {
 	ctx, span := tracer.Start(context.Background(), "getTodo")
 	defer span.End()
 
-	endpoint := "https://jsonplaceholder.typicode.com/todos/" + strconv.Itoa(id)
+	endpoint := "/todos/" + strconv.Itoa(id)
 
 	resp, err := client.R().SetContext(ctx).Get(endpoint)
 	if err != nil {
@@ -87,7 +87,7 @@ func createPost(client *resty.Client, id int) {
 	ctx, span := tracer.Start(context.Background(), "createPost")
 	defer span.End()
 
-	endpoint := "https://jsonplaceholder.typicode.com/posts"
+	endpoint := "/posts"
 
 	resp, err := client.R().SetContext(ctx).SetBody(map[string]any{
 		"id":   id + 1,
