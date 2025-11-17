@@ -99,7 +99,7 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 ) error {
 	idleConnectionDurationMetric, err := opts.Meter.Float64Histogram(
 		"http.client.idle_connection.duration",
-		metric.WithDescription("The duration of how long the connection that was previously idle."),
+		metric.WithDescription("The duration of how long the connection was previously idle."),
 		metric.WithUnit("s"),
 	)
 	if err != nil {
@@ -123,7 +123,7 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 	responseDurationMetric, err := opts.Meter.Float64Histogram(
 		"http.client.response.duration",
 		metric.WithDescription(
-			"the duration since the first response byte from the server to request completion.",
+			"The duration since the first response byte from the server to request completion.",
 		),
 		metric.WithUnit("s"),
 	)
@@ -145,7 +145,7 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 	tlsHandshakeDurationMetric, err := opts.Meter.Float64Histogram(
 		"http.client.tls_handshake.duration",
 		metric.WithDescription(
-			"the duration of the TLS handshake between the client and server.",
+			"The duration of the TLS handshake between the client and server.",
 		),
 		metric.WithUnit("s"),
 	)
