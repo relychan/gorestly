@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hasura/gotel/otelutils"
 	"resty.dev/v3"
 )
 
@@ -82,7 +83,7 @@ func createResponseLoggingMiddleware(logger *slog.Logger) resty.ResponseMiddlewa
 				Method:       resp.Request.Method,
 				Host:         resp.Request.RawRequest.URL.Host,
 				Proto:        resp.Request.RawRequest.Proto,
-				Header:       NewTelemetryHeaders(resp.Request.Header),
+				Header:       otelutils.NewTelemetryHeaders(resp.Request.Header),
 				RetryTraceID: resp.Request.RetryTraceID,
 				CurlCmd:      resp.Request.CurlCmd(),
 				Attempt:      resp.Request.Attempt,
@@ -101,7 +102,7 @@ func createResponseLoggingMiddleware(logger *slog.Logger) resty.ResponseMiddlewa
 			ReceivedAt: resp.ReceivedAt(),
 			Duration:   resp.Duration(),
 			Size:       resp.Size(),
-			Header:     NewTelemetryHeaders(resp.Header()),
+			Header:     otelutils.NewTelemetryHeaders(resp.Header()),
 		}
 
 		logLevel := slog.LevelInfo
