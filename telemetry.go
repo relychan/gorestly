@@ -52,6 +52,10 @@ func addTelemetryRequestMiddleware( //nolint:funlen
 		if err != nil {
 			client.Logger().
 				Warnf("", fmt.Sprintf("failed to parse url %s: %s", req.URL, err.Error()))
+
+			reqURL = &url.URL{
+				Path: req.URL,
+			}
 		} else if opts.TraceHighCardinalityPath {
 			spanName += " " + reqURL.Path
 		}
@@ -386,6 +390,15 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 				),
 				attribute.Bool("http.stats.is_connection_reused", traceInfo.IsConnReused),
 				attribute.Bool("http.stats.is_connection_was_idle", traceInfo.IsConnWasIdle),
+			)
+		} else {
+			requestDurationMetric.Record(
+				ctx,
+				resp.Duration().Seconds(),
+				requestMethod,
+				hostname,
+				port,
+				metricWithRequestAttrs...,
 			)
 		}
 
