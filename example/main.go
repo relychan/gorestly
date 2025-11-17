@@ -22,7 +22,7 @@ func main() {
 		// Level: slog.LevelDebug,
 	}))
 
-	_ = os.Setenv("OTEL_METRIC_EXPORT_INTERVAL", "1000")
+	_ = os.Setenv("OTEL_METRIC_EXPORT_INTERVAL", "1000ms")
 
 	otlpConfig := &gotel.OTLPConfig{
 		ServiceName:         "restly",

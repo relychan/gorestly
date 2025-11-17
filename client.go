@@ -121,7 +121,7 @@ func WithTracer(tracer trace.Tracer) Option {
 	}
 }
 
-// WithMeter create an option to set the meter for metrics.
+// WithMeter creates an option to set the meter for metrics.
 func WithMeter(meter metric.Meter) Option {
 	return func(co *clientOptions) {
 		co.Meter = meter
@@ -142,7 +142,7 @@ func WithMetricHighCardinalityPath(enabled bool) Option {
 	}
 }
 
-// WithCustomAttributesFunc set the function to add custom attributes to spans and metrics.
+// WithCustomAttributesFunc sets the function to add custom attributes to spans and metrics.
 func WithCustomAttributesFunc(fn CustomAttributesFunc) Option {
 	return func(co *clientOptions) {
 		co.CustomAttributesFunc = fn

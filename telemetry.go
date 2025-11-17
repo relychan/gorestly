@@ -154,7 +154,7 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 	tcpConnectionDurationMetric, err := opts.Meter.Float64Histogram(
 		"http.client.tcp_connection.duration",
 		metric.WithDescription(
-			"the duration since the first response byte from the server to request completion.",
+			"The duration of the TCP connection establishment.",
 		),
 		metric.WithUnit("s"),
 	)
@@ -165,7 +165,7 @@ func addTelemetryResponseMiddlewares( //nolint:gocognit,funlen,maintidx
 	tlsHandshakeDurationMetric, err := opts.Meter.Float64Histogram(
 		"http.client.tls_handshake.duration",
 		metric.WithDescription(
-			"the duration since the first response byte from the server to request completion.",
+			"the duration of the TLS handshake between the client and server.",
 		),
 		metric.WithUnit("s"),
 	)
